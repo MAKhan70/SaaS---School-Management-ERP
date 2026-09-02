@@ -1,0 +1,31 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: nasaq
+      POSTGRES_USER: nasaq_owner
+      POSTGRES_PASSWORD: nasaq_owner_local_only
+    ports:
+      - "5432:5432"
+    volumes:
+      - nasaq_postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nasaq_owner -d nasaq"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  app:
+    build: .
+    profiles: ["full"]
+    env_file: .env.local
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  nasaq_postgres_data:

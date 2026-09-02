@@ -1,0 +1,7 @@
+CREATE ROLE nasaq_app
+  LOGIN
+  PASSWORD 'nasaq_app_local_only'
+  NOSUPERUSER
+  NOCREATEDB
+  NOCREATEROLE
+  NOINHERIT;

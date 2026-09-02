@@ -1,0 +1,30 @@
+# dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# tests
+coverage/
+playwright-report/
+test-results/
+
+# environment and secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# generated
+src/generated/prisma/
+*.tsbuildinfo
+
+# local tooling
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+work/
+outputs/
+supabase/.temp/
