@@ -79,3 +79,6 @@ ALTER TABLE "support_access_grants" FORCE ROW LEVEL SECURITY;
 CREATE POLICY "support_access_grants_access" ON "support_access_grants"
   USING ("trust_id" = NULLIF(current_setting('app.current_trust_id', true), '') OR current_setting('app.platform_admin', true) = 'true')
   WITH CHECK (current_setting('app.platform_admin', true) = 'true');
+
+GRANT SELECT ON "platform_role_assignments" TO nasaq_app;
+GRANT SELECT, INSERT, UPDATE ON "tenant_feature_grants", "support_access_grants" TO nasaq_app;
