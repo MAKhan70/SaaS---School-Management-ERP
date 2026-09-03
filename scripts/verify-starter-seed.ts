@@ -13,34 +13,52 @@ try {
     );
   }
 
-  const [platformAdmin, schoolAdmin] = await Promise.all([
-    prisma.user.findUnique({
+  const verification = await prisma.$transaction(async (transaction) => {
+    await transaction.$executeRaw`SELECT set_config('app.platform_admin', 'true', true)`;
+    await transaction.$executeRaw`SELECT set_config('app.current_trust_id', ${demoTrustId}, true)`;
+
+    const platformAdmin = await transaction.user.findUnique({
       where: { email: platformAdminEmail },
       select: { id: true, passwordHash: true },
-    }),
-    prisma.user.findUnique({
+    });
+    const schoolAdmin = await transaction.user.findUnique({
       where: { email: "school-admin@demo.nasaq.test" },
       select: { id: true, passwordHash: true },
-    }),
-  ]);
+    });
+    const trustCount = await transaction.trust.count({
+      where: { id: demoTrustId },
+    });
+    const schoolCount = await transaction.school.count({
+      where: { trustId: demoTrustId },
+    });
+    const campusCount = await transaction.campus.count({
+      where: { trustId: demoTrustId },
+    });
 
-  if (!platformAdmin?.passwordHash || !schoolAdmin?.passwordHash) {
+    return {
+      platformAdmin,
+      schoolAdmin,
+      trustCount,
+      schoolCount,
+      campusCount,
+    };
+  });
+
+  if (
+    !verification.platformAdmin?.passwordHash ||
+    !verification.schoolAdmin?.passwordHash
+  ) {
     throw new Error("Starter administrator credentials were not seeded");
   }
 
-  const [trustCount, schoolCount, campusCount] = await prisma.$transaction(
-    async (transaction) => {
-      await transaction.$executeRaw`SELECT set_config('app.current_trust_id', ${demoTrustId}, true)`;
-      return Promise.all([
-        transaction.trust.count({ where: { id: demoTrustId } }),
-        transaction.school.count({ where: { trustId: demoTrustId } }),
-        transaction.campus.count({ where: { trustId: demoTrustId } }),
-      ]);
-    },
-  );
-
-  if (trustCount < 1 || schoolCount < 2 || campusCount < 4) {
-    throw new Error("Starter organization hierarchy is incomplete");
+  if (
+    verification.trustCount < 1 ||
+    verification.schoolCount < 2 ||
+    verification.campusCount < 4
+  ) {
+    throw new Error(
+      `Starter organization hierarchy is incomplete: trusts=${verification.trustCount}, schools=${verification.schoolCount}, campuses=${verification.campusCount}`,
+    );
   }
 
   console.log(

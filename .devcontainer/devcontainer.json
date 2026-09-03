@@ -1,0 +1,30 @@
+{
+  "name": "NASAQ School ERP starter preview",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-22-bookworm",
+  "forwardPorts": [3000],
+  "portsAttributes": {
+    "3000": {
+      "label": "NASAQ School ERP",
+      "onAutoForward": "openBrowser",
+      "visibility": "private"
+    }
+  },
+  "remoteEnv": {
+    "NEXT_TELEMETRY_DISABLED": "1"
+  },
+  "secrets": {
+    "DATABASE_URL": {
+      "description": "Supabase Session Pooler URI used by the starter application."
+    },
+    "DIRECT_DATABASE_URL": {
+      "description": "The same Supabase Session Pooler URI for this temporary starter."
+    },
+    "AUTH_SECRET": {
+      "description": "The generated AUTH_SECRET value from the private local .env.local file."
+    },
+    "STUDENT_DATA_ENCRYPTION_KEY": {
+      "description": "The generated encryption-key value from the private local .env.local file."
+    }
+  },
+  "postCreateCommand": "corepack enable && corepack prepare pnpm@10.19.0 --activate && pnpm install --frozen-lockfile && pnpm prisma:generate"
+}

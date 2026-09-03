@@ -30,6 +30,8 @@ pnpm dev
 
 Open <http://localhost:3000>. Liveness is available at <http://localhost:3000/api/health>; database readiness is available at <http://localhost:3000/api/ready>.
 
+For a private browser preview that stays on GitHub and connects to the Supabase starter database, follow [GitHub Codespaces Starter Preview](docs/STARTER_PREVIEW.md).
+
 ## Quality checks
 
 ```bash
