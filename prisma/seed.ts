@@ -25,7 +25,7 @@ const ids = {
   cbseNashikCampus: "campus_cbse_nashik_demo",
   statePuneCampus: "campus_state_pune_demo",
   stateNagpurCampus: "campus_state_nagpur_demo",
-  cbseAcademicYear: "academic_year_cbse_2026_27_demo",
+  cbseAcademicYear: "academic_year_2026_27_demo",
   stateAcademicYear: "academic_year_state_2026_27_demo",
   cbseBoard: "board_cbse_v1_demo",
   stateBoard: "board_maharashtra_v1_demo",
