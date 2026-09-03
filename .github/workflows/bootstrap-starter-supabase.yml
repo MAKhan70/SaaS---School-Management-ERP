@@ -1,0 +1,58 @@
+name: Bootstrap starter Supabase
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bootstrap-starter-supabase
+  cancel-in-progress: false
+
+jobs:
+  bootstrap:
+    name: Apply migrations and synthetic seed
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DATABASE_URL: ${{ secrets.STARTER_DATABASE_URL }}
+      DIRECT_DATABASE_URL: ${{ secrets.STARTER_DATABASE_URL }}
+      PLATFORM_ADMIN_EMAIL: platform-admin@demo.nasaq.test
+      PLATFORM_ADMIN_NAME: NASAQ Starter Administrator
+      PLATFORM_ADMIN_PASSWORD: ${{ secrets.STARTER_LOGIN_PASSWORD }}
+      DEMO_USER_PASSWORD: ${{ secrets.STARTER_LOGIN_PASSWORD }}
+    steps:
+      - name: Check required secrets
+        shell: bash
+        run: |
+          if [ -z "$DATABASE_URL" ] || [ -z "$PLATFORM_ADMIN_PASSWORD" ]; then
+            echo "STARTER_DATABASE_URL and STARTER_LOGIN_PASSWORD must be configured as repository secrets."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.19.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate Prisma schema
+        run: pnpm prisma:validate
+
+      - name: Apply committed migrations
+        run: pnpm prisma:migrate:deploy
+
+      - name: Seed synthetic starter data
+        run: pnpm prisma:seed
+
+      - name: Verify starter accounts and hierarchy
+        run: pnpm starter:verify

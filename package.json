@@ -11,6 +11,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "starter:configure": "node scripts/configure-starter-env.mjs",
+    "starter:verify": "tsx scripts/verify-starter-seed.ts",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc --noEmit",
     "test": "pnpm test:unit",
