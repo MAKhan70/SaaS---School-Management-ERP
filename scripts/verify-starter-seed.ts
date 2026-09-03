@@ -1,4 +1,5 @@
 import { PrismaClient } from "../src/generated/prisma/client";
+import { AuthenticationService } from "../src/modules/identity/application/auth-service";
 import { verifyPassword } from "../src/modules/identity/infrastructure/credential-crypto";
 
 const demoTrustId = "trust_saraswati_demo";
@@ -111,8 +112,42 @@ async function verifyStarterSeed() {
       throw new Error("Starter sign-in throttles were not reset");
     }
 
+    if (platformPassword && schoolPassword) {
+      const authentication = new AuthenticationService(prisma);
+      for (const credentials of [
+        { email: platformAdminEmail, password: platformPassword },
+        {
+          email: "school-admin@demo.nasaq.test",
+          password: schoolPassword,
+        },
+      ]) {
+        const metadata = {
+          correlationId: `starter-auth-verification-${crypto.randomUUID()}`,
+        };
+        const signIn = await authentication.signIn(credentials, metadata);
+        if (!signIn.ok) {
+          throw new Error(
+            `Starter full sign-in verification failed: ${signIn.reason}`,
+          );
+        }
+        const context = await authentication.authenticateSession(
+          signIn.sessionToken,
+        );
+        if (!context) {
+          throw new Error("Starter session verification failed");
+        }
+        await authentication.signOut(signIn.sessionToken, metadata);
+      }
+
+      if (process.env.RESET_STARTER_SECURITY_STATE === "true") {
+        await prisma.authRateLimit.deleteMany({
+          where: { action: "SIGN_IN" },
+        });
+      }
+    }
+
     console.log(
-      "Starter seed verified: two logins and demo hierarchy are ready.",
+      "Starter seed verified: two complete sign-ins and demo hierarchy are ready.",
     );
   } finally {
     await prisma.$disconnect();

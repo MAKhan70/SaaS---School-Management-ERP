@@ -12,6 +12,7 @@ import {
 import { prisma } from "@/server/database/prisma";
 import { parseRequestBody, wantsJson } from "@/server/http/request-body";
 import { sameOriginRedirect } from "@/server/http/same-origin-redirect";
+import { log } from "@/server/observability/logger";
 import { SESSION_COOKIE, sessionCookieOptions } from "@/server/auth/session";
 
 export async function POST(request: Request) {
@@ -23,11 +24,16 @@ export async function POST(request: Request) {
   }
   try {
     const input = await parseRequestBody(request, signInSchema);
+    const metadata = requestMetadata(request.headers);
     const result = await new AuthenticationService(prisma).signIn(
       input,
-      requestMetadata(request.headers),
+      metadata,
     );
     if (!result.ok) {
+      log("warn", "auth.sign_in_denied", {
+        reasonCode: result.reason,
+        correlationId: metadata.correlationId,
+      });
       const status = result.reason === "RATE_LIMITED" ? 429 : 401;
       if (wantsJson(request))
         return NextResponse.json(
