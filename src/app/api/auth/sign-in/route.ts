@@ -11,6 +11,7 @@ import {
 } from "@/modules/identity/domain/request-security";
 import { prisma } from "@/server/database/prisma";
 import { parseRequestBody, wantsJson } from "@/server/http/request-body";
+import { sameOriginRedirect } from "@/server/http/same-origin-redirect";
 import { SESSION_COOKIE, sessionCookieOptions } from "@/server/auth/session";
 
 export async function POST(request: Request) {
@@ -37,20 +38,13 @@ export async function POST(request: Request) {
               status === 429 ? { "Retry-After": String(15 * 60) } : undefined,
           },
         );
-      return NextResponse.redirect(
-        new URL(
-          `/sign-in?error=invalid&returnUrl=${encodeURIComponent(safeReturnUrl(input.returnUrl))}`,
-          request.url,
-        ),
-        303,
+      return sameOriginRedirect(
+        `/sign-in?error=invalid&returnUrl=${encodeURIComponent(safeReturnUrl(input.returnUrl))}`,
       );
     }
     const response = wantsJson(request)
       ? NextResponse.json({ context: result.context })
-      : NextResponse.redirect(
-          new URL(safeReturnUrl(input.returnUrl), request.url),
-          303,
-        );
+      : sameOriginRedirect(safeReturnUrl(input.returnUrl));
     response.cookies.set(
       SESSION_COOKIE,
       result.sessionToken,
