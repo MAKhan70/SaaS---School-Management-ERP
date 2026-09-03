@@ -633,7 +633,11 @@ async function seedGlobalData() {
       update: {
         email,
         status: "ACTIVE",
-        ...(passwordHash ? { passwordHash } : {}),
+        failedLoginAttempts: 0,
+        lockedUntil: null,
+        ...(passwordHash
+          ? { passwordHash, credentialsUpdatedAt: new Date() }
+          : {}),
       },
       create: {
         id,

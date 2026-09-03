@@ -1,4 +1,5 @@
 import { PrismaClient } from "../src/generated/prisma/client";
+import { verifyPassword } from "../src/modules/identity/infrastructure/credential-crypto";
 
 const demoTrustId = "trust_saraswati_demo";
 const defaultPlatformAdminEmail = "platform-admin@demo.nasaq.test";
@@ -17,11 +18,23 @@ async function verifyStarterSeed() {
 
       const platformAdmin = await transaction.user.findUnique({
         where: { email: platformAdminEmail },
-        select: { id: true, passwordHash: true },
+        select: {
+          id: true,
+          passwordHash: true,
+          status: true,
+          failedLoginAttempts: true,
+          lockedUntil: true,
+        },
       });
       const schoolAdmin = await transaction.user.findUnique({
         where: { email: "school-admin@demo.nasaq.test" },
-        select: { id: true, passwordHash: true },
+        select: {
+          id: true,
+          passwordHash: true,
+          status: true,
+          failedLoginAttempts: true,
+          lockedUntil: true,
+        },
       });
       const trustCount = await transaction.trust.count({
         where: { id: demoTrustId },
@@ -47,6 +60,34 @@ async function verifyStarterSeed() {
       !verification.schoolAdmin?.passwordHash
     ) {
       throw new Error("Starter administrator credentials were not seeded");
+    }
+
+    if (
+      verification.platformAdmin.status !== "ACTIVE" ||
+      verification.schoolAdmin.status !== "ACTIVE" ||
+      verification.platformAdmin.failedLoginAttempts !== 0 ||
+      verification.schoolAdmin.failedLoginAttempts !== 0 ||
+      verification.platformAdmin.lockedUntil ||
+      verification.schoolAdmin.lockedUntil
+    ) {
+      throw new Error("Starter administrator accounts are not available");
+    }
+
+    const platformPassword = process.env.PLATFORM_ADMIN_PASSWORD;
+    const schoolPassword = process.env.DEMO_USER_PASSWORD;
+    if (
+      (platformPassword &&
+        !(await verifyPassword(
+          platformPassword,
+          verification.platformAdmin.passwordHash,
+        ))) ||
+      (schoolPassword &&
+        !(await verifyPassword(
+          schoolPassword,
+          verification.schoolAdmin.passwordHash,
+        )))
+    ) {
+      throw new Error("Starter administrator password verification failed");
     }
 
     if (
