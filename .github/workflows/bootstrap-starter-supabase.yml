@@ -22,6 +22,7 @@ jobs:
       PLATFORM_ADMIN_NAME: NASAQ Starter Administrator
       PLATFORM_ADMIN_PASSWORD: ${{ secrets.STARTER_LOGIN_PASSWORD }}
       DEMO_USER_PASSWORD: ${{ secrets.STARTER_LOGIN_PASSWORD }}
+      RESET_STARTER_SECURITY_STATE: "true"
     steps:
       - name: Check required secrets
         shell: bash

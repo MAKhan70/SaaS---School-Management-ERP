@@ -45,6 +45,9 @@ async function verifyStarterSeed() {
       const campusCount = await transaction.campus.count({
         where: { trustId: demoTrustId },
       });
+      const signInRateLimitCount = await transaction.authRateLimit.count({
+        where: { action: "SIGN_IN" },
+      });
 
       return {
         platformAdmin,
@@ -52,6 +55,7 @@ async function verifyStarterSeed() {
         trustCount,
         schoolCount,
         campusCount,
+        signInRateLimitCount,
       };
     });
 
@@ -98,6 +102,13 @@ async function verifyStarterSeed() {
       throw new Error(
         `Starter organization hierarchy is incomplete: trusts=${verification.trustCount}, schools=${verification.schoolCount}, campuses=${verification.campusCount}`,
       );
+    }
+
+    if (
+      process.env.RESET_STARTER_SECURITY_STATE === "true" &&
+      verification.signInRateLimitCount !== 0
+    ) {
+      throw new Error("Starter sign-in throttles were not reset");
     }
 
     console.log(

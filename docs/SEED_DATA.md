@@ -46,5 +46,8 @@ The demo teacher also has a second school membership, a librarian role assignmen
 - Seed operations use upsert or create-if-absent behavior.
 - Tenant rows are written inside a transaction-local tenant context.
 - System-role bootstrap runs with an explicit platform-administration context.
+- The starter-only GitHub bootstrap sets `RESET_STARTER_SECURITY_STATE=true`
+  to clear accumulated synthetic sign-in throttles before resetting demo
+  credentials. Ordinary seed runs do not clear security controls.
 - The seed writes one immutable completion audit event and does not update it on rerun.
 - Real-looking but fictional organization names are suffixed with `(Demo)`.

@@ -7,6 +7,7 @@ import {
   GuardianRelationshipType,
   Prisma,
   PrismaClient,
+  RateLimitAction,
   RecordStatus,
   RoleOrigin,
 } from "../src/generated/prisma";
@@ -545,6 +546,20 @@ const academicYearIdForSchool = (schoolId: string) => {
 };
 
 async function seedGlobalData() {
+  if (process.env.RESET_STARTER_SECURITY_STATE === "true") {
+    const clearedRateLimits = await prisma.authRateLimit.deleteMany({
+      where: { action: RateLimitAction.SIGN_IN },
+    });
+    await prisma.securityEvent.create({
+      data: {
+        action: "auth.starter_sign_in_throttles_reset",
+        outcome: "SUCCEEDED",
+        correlationId: crypto.randomUUID(),
+        metadata: { clearedCount: clearedRateLimits.count },
+      },
+    });
+  }
+
   await prisma.platform.upsert({
     where: { key: "nasaq" },
     update: { name: "NASAQ Academic Systems" },
