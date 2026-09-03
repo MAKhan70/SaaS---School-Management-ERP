@@ -1,19 +1,15 @@
 import { PrismaClient } from "../src/generated/prisma/client";
 
 const demoTrustId = "trust_saraswati_demo";
+const defaultPlatformAdminEmail = "platform-admin@demo.nasaq.test";
 
 async function verifyStarterSeed() {
   const prisma = new PrismaClient();
 
   try {
     const platformAdminEmail =
-      process.env.PLATFORM_ADMIN_EMAIL?.trim().toLowerCase();
-
-    if (!platformAdminEmail) {
-      throw new Error(
-        "PLATFORM_ADMIN_EMAIL is required for starter verification",
-      );
-    }
+      process.env.PLATFORM_ADMIN_EMAIL?.trim().toLowerCase() ??
+      defaultPlatformAdminEmail;
 
     const verification = await prisma.$transaction(async (transaction) => {
       await transaction.$executeRaw`SELECT set_config('app.platform_admin', 'true', true)`;
