@@ -182,7 +182,7 @@ See [Audit and Retention](architecture/AUDIT_AND_RETENTION.md).
 - Permission keys must use at least three lowercase dot-separated segments.
 - System roles have no trust; tenant roles must have one.
 - Role-assignment shape must match trust, school, or campus scope.
-- Only one active academic year exists per trust.
+- Active academic-year date ranges cannot overlap within a school; legacy trust-level years permit only one active record per trust.
 - Only one active enrollment exists per student and academic year.
 - Audit events cannot be updated or deleted.
 - Finalized receipts, payment allocations, daily collection closures, and financial audit entries cannot be updated or deleted.

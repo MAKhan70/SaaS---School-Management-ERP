@@ -14,7 +14,7 @@ The seed establishes a deterministic, fictional environment for development, dem
 - School 2: Saraswati State School (Demo), Maharashtra State Board configuration version 1
   - Pune State Campus (Demo)
   - Nagpur Campus (Demo)
-- Active academic year: 2026–27
+- Active academic year: school-scoped 2026–27 configuration for each demo school
 
 Representative grades, sections, streams, departments, subjects, terms, weekly working days, rooms, periods, holidays, houses, grading scales, and student/employee numbering rules validate composite academic relationships without implementing business modules. All labels are seed data rather than application constants.
 

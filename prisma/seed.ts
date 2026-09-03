@@ -25,7 +25,8 @@ const ids = {
   cbseNashikCampus: "campus_cbse_nashik_demo",
   statePuneCampus: "campus_state_pune_demo",
   stateNagpurCampus: "campus_state_nagpur_demo",
-  academicYear: "academic_year_2026_27_demo",
+  cbseAcademicYear: "academic_year_cbse_2026_27_demo",
+  stateAcademicYear: "academic_year_state_2026_27_demo",
   cbseBoard: "board_cbse_v1_demo",
   stateBoard: "board_maharashtra_v1_demo",
 } as const;
@@ -537,6 +538,11 @@ const userId = (key: string) => `user_demo_${key.replaceAll("-", "_")}`;
 const personId = (key: string) => `person_demo_${key.replaceAll("-", "_")}`;
 const membershipId = (key: string, schoolId: string) =>
   `membership_demo_${key.replaceAll("-", "_")}_${schoolId}`;
+const academicYearIdForSchool = (schoolId: string) => {
+  if (schoolId === ids.cbseSchool) return ids.cbseAcademicYear;
+  if (schoolId === ids.stateSchool) return ids.stateAcademicYear;
+  throw new Error(`No synthetic academic year is configured for ${schoolId}`);
+};
 
 async function seedGlobalData() {
   await prisma.platform.upsert({
@@ -764,19 +770,33 @@ async function seedTenantData() {
         });
       }
 
-      await transaction.academicYear.upsert({
-        where: { trustId_code: { trustId: ids.trust, code: "2026-27" } },
-        update: { status: AcademicYearStatus.ACTIVE },
-        create: {
-          id: ids.academicYear,
-          trustId: ids.trust,
-          code: "2026-27",
-          name: "Academic Year 2026–27",
-          startsOn: date("2026-04-01"),
-          endsOn: date("2027-03-31"),
-          status: AcademicYearStatus.ACTIVE,
+      for (const academicYear of [
+        {
+          id: ids.cbseAcademicYear,
+          schoolId: ids.cbseSchool,
+          code: "CBSE-2026-27",
         },
-      });
+        {
+          id: ids.stateAcademicYear,
+          schoolId: ids.stateSchool,
+          code: "MH-2026-27",
+        },
+      ] as const) {
+        await transaction.academicYear.upsert({
+          where: {
+            trustId_code: { trustId: ids.trust, code: academicYear.code },
+          },
+          update: { status: AcademicYearStatus.ACTIVE },
+          create: {
+            ...academicYear,
+            trustId: ids.trust,
+            name: "Academic Year 2026–27",
+            startsOn: date("2026-04-01"),
+            endsOn: date("2027-03-31"),
+            status: AcademicYearStatus.ACTIVE,
+          },
+        });
+      }
 
       const boards: readonly {
         id: string;
@@ -1027,7 +1047,7 @@ async function seedTenantData() {
             trustId_campusId_academicYearId_gradeClassId_code: {
               trustId: ids.trust,
               campusId: section.campusId,
-              academicYearId: ids.academicYear,
+              academicYearId: academicYearIdForSchool(section.schoolId),
               gradeClassId: section.gradeClassId,
               code: section.code,
             },
@@ -1036,19 +1056,20 @@ async function seedTenantData() {
           create: {
             ...section,
             trustId: ids.trust,
-            academicYearId: ids.academicYear,
+            academicYearId: academicYearIdForSchool(section.schoolId),
             capacity: 40,
           },
         });
       }
 
       for (const schoolId of [ids.cbseSchool, ids.stateSchool]) {
+        const academicYearId = academicYearIdForSchool(schoolId);
         await transaction.academicTerm.upsert({
           where: {
             trustId_schoolId_academicYearId_code: {
               trustId: ids.trust,
               schoolId,
-              academicYearId: ids.academicYear,
+              academicYearId,
               code: "T1",
             },
           },
@@ -1056,7 +1077,7 @@ async function seedTenantData() {
           create: {
             trustId: ids.trust,
             schoolId,
-            academicYearId: ids.academicYear,
+            academicYearId,
             code: "T1",
             name: "Term 1",
             sequence: 1,
@@ -1070,7 +1091,7 @@ async function seedTenantData() {
               trustId_schoolId_academicYearId_weekday: {
                 trustId: ids.trust,
                 schoolId,
-                academicYearId: ids.academicYear,
+                academicYearId,
                 weekday,
               },
             },
@@ -1078,7 +1099,7 @@ async function seedTenantData() {
             create: {
               trustId: ids.trust,
               schoolId,
-              academicYearId: ids.academicYear,
+              academicYearId,
               weekday,
               isWorking: weekday <= 6,
             },
@@ -1121,12 +1142,13 @@ async function seedTenantData() {
         [ids.cbseSchool, ids.cbsePuneCampus],
         [ids.stateSchool, ids.statePuneCampus],
       ] as const) {
+        const academicYearId = academicYearIdForSchool(schoolId);
         await transaction.period.upsert({
           where: {
             trustId_schoolId_academicYearId_campusId_code: {
               trustId: ids.trust,
               schoolId,
-              academicYearId: ids.academicYear,
+              academicYearId,
               campusId,
               code: "P1",
             },
@@ -1136,7 +1158,7 @@ async function seedTenantData() {
             trustId: ids.trust,
             schoolId,
             campusId,
-            academicYearId: ids.academicYear,
+            academicYearId,
             code: "P1",
             name: "Period 1",
             sequence: 1,
@@ -1149,7 +1171,7 @@ async function seedTenantData() {
             trustId_schoolId_academicYearId_campusId_date: {
               trustId: ids.trust,
               schoolId,
-              academicYearId: ids.academicYear,
+              academicYearId,
               campusId,
               date: date("2026-08-15"),
             },
@@ -1159,7 +1181,7 @@ async function seedTenantData() {
             trustId: ids.trust,
             schoolId,
             campusId,
-            academicYearId: ids.academicYear,
+            academicYearId,
             date: date("2026-08-15"),
             type: "HOLIDAY",
             name: "Independence Day",
@@ -1196,7 +1218,7 @@ async function seedTenantData() {
             create: {
               trustId: ids.trust,
               schoolId,
-              academicYearId: ids.academicYear,
+              academicYearId,
               entityType,
               prefixTemplate:
                 entityType === "STUDENT" ? "{SCHOOL}-{YEAR}-S-" : "{SCHOOL}-E-",
@@ -1210,6 +1232,7 @@ async function seedTenantData() {
       }
 
       for (const schoolId of [ids.cbseSchool, ids.stateSchool]) {
+        const academicYearId = academicYearIdForSchool(schoolId);
         const scale = await transaction.gradingScale.upsert({
           where: {
             trustId_schoolId_code_version: {
@@ -1223,7 +1246,7 @@ async function seedTenantData() {
           create: {
             trustId: ids.trust,
             schoolId,
-            academicYearId: ids.academicYear,
+            academicYearId,
             code: "PERCENT",
             name: "Percentage scale",
             version: 1,
@@ -1436,7 +1459,7 @@ async function seedTenantData() {
           studentProfileId: "student_profile_demo",
           schoolId: ids.cbseSchool,
           campusId: ids.cbsePuneCampus,
-          academicYearId: ids.academicYear,
+          academicYearId: ids.cbseAcademicYear,
           admissionNumber: "SCB-2026-27-S-00001",
           admittedOn: date("2026-04-01"),
           source: "SYNTHETIC_SEED",
@@ -1467,7 +1490,7 @@ async function seedTenantData() {
           trustId_studentProfileId_academicYearId_startsOn: {
             trustId: ids.trust,
             studentProfileId: "student_profile_demo",
-            academicYearId: ids.academicYear,
+            academicYearId: ids.cbseAcademicYear,
             startsOn: date("2026-04-01"),
           },
         },
@@ -1478,7 +1501,7 @@ async function seedTenantData() {
           studentProfileId: "student_profile_demo",
           schoolId: ids.cbseSchool,
           campusId: ids.cbsePuneCampus,
-          academicYearId: ids.academicYear,
+          academicYearId: ids.cbseAcademicYear,
           sectionId: "section_cbse_pune_8a_demo",
           rollNumber: "08A-001",
           startsOn: date("2026-04-01"),
@@ -1567,7 +1590,7 @@ async function seedTenantData() {
             trustId_schoolId_academicYearId_code: {
               trustId: ids.trust,
               schoolId: ids.cbseSchool,
-              academicYearId: ids.academicYear,
+              academicYearId: ids.cbseAcademicYear,
               code,
             },
           },
@@ -1576,7 +1599,7 @@ async function seedTenantData() {
             id: `attendance_status_${code.toLowerCase()}_demo`,
             trustId: ids.trust,
             schoolId: ids.cbseSchool,
-            academicYearId: ids.academicYear,
+            academicYearId: ids.cbseAcademicYear,
             code,
             name,
             category,
@@ -1594,7 +1617,7 @@ async function seedTenantData() {
           trustId: ids.trust,
           schoolId: ids.cbseSchool,
           campusId: ids.cbsePuneCampus,
-          academicYearId: ids.academicYear,
+          academicYearId: ids.cbseAcademicYear,
           sectionId: "section_cbse_pune_8a_demo",
           subjectId: "subject_cbse_mathematics_demo",
           teacherUserId: userId("teacher"),
@@ -1630,7 +1653,7 @@ async function seedTenantData() {
               trustId: ids.trust,
               schoolId: ids.cbseSchool,
               campusId: ids.cbsePuneCampus,
-              academicYearId: ids.academicYear,
+              academicYearId: ids.cbseAcademicYear,
               staffProfileId: "staff_profile_demo_teacher",
               effectiveFrom: date("2026-04-01"),
             },
@@ -1641,7 +1664,7 @@ async function seedTenantData() {
           trustId: ids.trust,
           schoolId: ids.cbseSchool,
           campusId: ids.cbsePuneCampus,
-          academicYearId: ids.academicYear,
+          academicYearId: ids.cbseAcademicYear,
           staffProfileId: "staff_profile_demo_teacher",
           shiftId: staffShift.id,
           effectiveFrom: date("2026-04-01"),
@@ -1694,7 +1717,7 @@ async function seedTenantData() {
           trustId_schoolId_academicYearId_code: {
             trustId: ids.trust,
             schoolId: ids.cbseSchool,
-            academicYearId: ids.academicYear,
+            academicYearId: ids.cbseAcademicYear,
             code: "T1",
           },
         },
@@ -1770,7 +1793,7 @@ async function seedTenantData() {
           trustId_schoolId_academicYearId_campusId_code: {
             trustId: ids.trust,
             schoolId: ids.cbseSchool,
-            academicYearId: ids.academicYear,
+            academicYearId: ids.cbseAcademicYear,
             campusId: ids.cbsePuneCampus,
             code: "PT1",
           },
@@ -1781,7 +1804,7 @@ async function seedTenantData() {
           trustId: ids.trust,
           schoolId: ids.cbseSchool,
           campusId: ids.cbsePuneCampus,
-          academicYearId: ids.academicYear,
+          academicYearId: ids.cbseAcademicYear,
           academicTermId: cbseTerm.id,
           ruleSetId: cbseRules.id,
           code: "PT1",
@@ -1838,7 +1861,7 @@ async function seedTenantData() {
             trustId: ids.trust,
             schoolId: ids.cbseSchool,
             campusId: ids.cbsePuneCampus,
-            academicYearId: ids.academicYear,
+            academicYearId: ids.cbseAcademicYear,
             examinationId: examination.id,
             sectionId: "section_cbse_pune_8a_demo",
             subjectId: offering.subjectId,
@@ -1893,7 +1916,7 @@ async function seedTenantData() {
             trustId: ids.trust,
             schoolId: ids.cbseSchool,
             campusId: ids.cbsePuneCampus,
-            academicYearId: ids.academicYear,
+            academicYearId: ids.cbseAcademicYear,
             examinationSubjectId: subject.id,
           },
         });
@@ -1912,7 +1935,7 @@ async function seedTenantData() {
           id: "report_card_template_standard_demo",
           trustId: ids.trust,
           schoolId: ids.cbseSchool,
-          academicYearId: ids.academicYear,
+          academicYearId: ids.cbseAcademicYear,
           boardConfigurationId: ids.cbseBoard,
           code: "STANDARD",
           name: "Standard report card",
@@ -1942,7 +1965,7 @@ async function seedTenantData() {
           trustId_schoolId_academicYearId_kind_code_version: {
             trustId: ids.trust,
             schoolId: ids.cbseSchool,
-            academicYearId: ids.academicYear,
+            academicYearId: ids.cbseAcademicYear,
             kind: "ENQUIRY",
             code: "PUBLIC-ENQUIRY",
             version: 1,
@@ -1953,7 +1976,7 @@ async function seedTenantData() {
           id: "admission_form_enquiry_demo",
           trustId: ids.trust,
           schoolId: ids.cbseSchool,
-          academicYearId: ids.academicYear,
+          academicYearId: ids.cbseAcademicYear,
           kind: "ENQUIRY",
           code: "PUBLIC-ENQUIRY",
           name: "Admission enquiry",
@@ -1984,7 +2007,7 @@ async function seedTenantData() {
           trustId_schoolId_academicYearId_kind_code_version: {
             trustId: ids.trust,
             schoolId: ids.cbseSchool,
-            academicYearId: ids.academicYear,
+            academicYearId: ids.cbseAcademicYear,
             kind: "APPLICATION",
             code: "PUBLIC-APPLICATION",
             version: 1,
@@ -1995,7 +2018,7 @@ async function seedTenantData() {
           id: "admission_form_application_demo",
           trustId: ids.trust,
           schoolId: ids.cbseSchool,
-          academicYearId: ids.academicYear,
+          academicYearId: ids.cbseAcademicYear,
           kind: "APPLICATION",
           code: "PUBLIC-APPLICATION",
           name: "Admission application",
@@ -2041,7 +2064,7 @@ async function seedTenantData() {
             ...entry,
             trustId: ids.trust,
             schoolId: ids.cbseSchool,
-            academicYearId: ids.academicYear,
+            academicYearId: ids.cbseAcademicYear,
           },
         });
       }
@@ -2050,7 +2073,7 @@ async function seedTenantData() {
           trustId_schoolId_academicYearId_gradeClassId: {
             trustId: ids.trust,
             schoolId: ids.cbseSchool,
-            academicYearId: ids.academicYear,
+            academicYearId: ids.cbseAcademicYear,
             gradeClassId: "grade_cbse_8_demo",
           },
         },
@@ -2059,7 +2082,7 @@ async function seedTenantData() {
           id: "admission_seat_plan_grade_8_demo",
           trustId: ids.trust,
           schoolId: ids.cbseSchool,
-          academicYearId: ids.academicYear,
+          academicYearId: ids.cbseAcademicYear,
           gradeClassId: "grade_cbse_8_demo",
           capacity: 80,
         },
@@ -2078,7 +2101,7 @@ async function seedTenantData() {
           trustId: ids.trust,
           schoolId: ids.cbseSchool,
           campusId: ids.cbsePuneCampus,
-          academicYearId: ids.academicYear,
+          academicYearId: ids.cbseAcademicYear,
           formId: applicationForm.id,
           targetGradeClassId: "grade_cbse_8_demo",
           counselorUserId: userId("school-admin"),
@@ -2198,7 +2221,7 @@ async function seedTenantData() {
           trustId_schoolId_academicYearId_gradeClassId_code_version: {
             trustId: ids.trust,
             schoolId: ids.cbseSchool,
-            academicYearId: ids.academicYear,
+            academicYearId: ids.cbseAcademicYear,
             gradeClassId: "grade_cbse_8_demo",
             code: "GRADE8_STANDARD",
             version: 1,
@@ -2209,7 +2232,7 @@ async function seedTenantData() {
           id: "fee_structure_grade8_demo",
           trustId: ids.trust,
           schoolId: ids.cbseSchool,
-          academicYearId: ids.academicYear,
+          academicYearId: ids.cbseAcademicYear,
           gradeClassId: "grade_cbse_8_demo",
           code: "GRADE8_STANDARD",
           name: "Grade 8 standard fees",
@@ -2287,7 +2310,7 @@ async function seedTenantData() {
           trustId_schoolId_academicYearId_studentProfileId_structureLineId: {
             trustId: ids.trust,
             schoolId: ids.cbseSchool,
-            academicYearId: ids.academicYear,
+            academicYearId: ids.cbseAcademicYear,
             studentProfileId: "student_profile_demo",
             structureLineId: tuitionLine.id,
           },
@@ -2301,7 +2324,7 @@ async function seedTenantData() {
           trustId: ids.trust,
           schoolId: ids.cbseSchool,
           campusId: ids.cbsePuneCampus,
-          academicYearId: ids.academicYear,
+          academicYearId: ids.cbseAcademicYear,
           studentProfileId: "student_profile_demo",
           enrollmentId: "student_enrollment_demo_2026_27",
           sectionId: "section_cbse_pune_8a_demo",
@@ -2326,7 +2349,7 @@ async function seedTenantData() {
             trustId: ids.trust,
             schoolId: ids.cbseSchool,
             campusId: ids.cbsePuneCampus,
-            academicYearId: ids.academicYear,
+            academicYearId: ids.cbseAcademicYear,
             studentProfileId: "student_profile_demo",
             direction: "DEBIT",
             amountMinor: seededAssignment.amountMinor,
@@ -2498,7 +2521,7 @@ async function seedTenantData() {
             trustId: ids.trust,
             schoolId: ids.cbseSchool,
             campusId: ids.cbsePuneCampus,
-            academicYearId: ids.academicYear,
+            academicYearId: ids.cbseAcademicYear,
             createdBy: userId("school-admin"),
           },
         });
@@ -2523,7 +2546,7 @@ async function seedTenantData() {
             trustId: ids.trust,
             schoolId: ids.cbseSchool,
             campusId: ids.cbsePuneCampus,
-            academicYearId: ids.academicYear,
+            academicYearId: ids.cbseAcademicYear,
             module: module.key,
             recordType: module.recordTypes[0]!.key,
             referenceNumber,
@@ -2576,7 +2599,7 @@ async function seedTenantData() {
           trustId: ids.trust,
           schoolId: ids.cbseSchool,
           campusId: ids.cbsePuneCampus,
-          academicYearId: ids.academicYear,
+          academicYearId: ids.cbseAcademicYear,
           feature: "LESSON_PLAN_OUTLINE",
           provider: "LOCAL_MOCK",
           providerVersion: "local-mock-2026-09-01",
@@ -2634,7 +2657,7 @@ async function seedTenantData() {
             trustId: ids.trust,
             schoolId: ids.cbseSchool,
             campusId: ids.cbsePuneCampus,
-            academicYearId: ids.academicYear,
+            academicYearId: ids.cbseAcademicYear,
             studentProfileId: "student_profile_demo",
             ruleKey: "attendance.human_review",
             ruleVersion: "2026-09-01.1",
