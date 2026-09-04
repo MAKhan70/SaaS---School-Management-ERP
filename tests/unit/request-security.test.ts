@@ -1,13 +1,16 @@
 import { privateStorageKeySchema } from "@/lib/private-file-policy";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { safeReturnUrl } from "@/modules/identity/domain/auth-contracts";
 import {
   hasSafeFetchMetadata,
   hasTrustedMutationOrigin,
   requestMetadata,
 } from "@/modules/identity/domain/request-security";
+import { sessionCookieOptions } from "@/server/auth/session";
 
 describe("request security regression controls", () => {
+  afterEach(() => vi.unstubAllEnvs());
+
   it("pins mutation origins to the configured public origin", () => {
     const previous = process.env.APP_ORIGIN;
     process.env.APP_ORIGIN = "https://schools.example.test";
@@ -26,6 +29,33 @@ describe("request security regression controls", () => {
     ).toBe(false);
     if (previous === undefined) delete process.env.APP_ORIGIN;
     else process.env.APP_ORIGIN = previous;
+  });
+
+  it("accepts a same-host HTTPS development preview behind a proxy", () => {
+    vi.stubEnv("APP_ORIGIN", "http://localhost:3000");
+    vi.stubEnv("NODE_ENV", "development");
+
+    const headers = new Headers({
+      origin: "https://fictional-preview-3000.app.github.dev",
+      "x-forwarded-host": "fictional-preview-3000.app.github.dev",
+      "x-forwarded-proto": "https",
+    });
+    expect(hasTrustedMutationOrigin(headers)).toBe(true);
+
+    headers.set("origin", "https://attacker.example.test");
+    expect(hasTrustedMutationOrigin(headers)).toBe(false);
+  });
+
+  it("marks forwarded HTTPS preview session cookies as secure", () => {
+    vi.stubEnv("NODE_ENV", "development");
+
+    expect(
+      sessionCookieOptions(
+        undefined,
+        new Headers({ "x-forwarded-proto": "https" }),
+      ).secure,
+    ).toBe(true);
+    expect(sessionCookieOptions().secure).toBe(false);
   });
 
   it("rejects cross-site Fetch Metadata and open redirects", () => {

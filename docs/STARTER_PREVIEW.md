@@ -29,3 +29,26 @@ The dev-container configuration recommends these names when creating a codespace
 5. Open `/sign-in` and use one of the synthetic starter accounts documented in `docs/SEED_DATA.md`.
 
 The preview URL is temporary and normally follows GitHub's `https://CODESPACENAME-3000.app.github.dev` format. It exists only while the codespace is running.
+
+## Supabase connection and sign-in checks
+
+Prisma is the application's PostgreSQL client; it does not create or operate a
+second database. Both the bootstrap workflow and the Codespace must point to the
+same Supabase project. GitHub stores Actions secrets and Codespaces secrets
+separately, so changing `STARTER_DATABASE_URL` does not update the Codespaces
+`DATABASE_URL` automatically.
+
+If the bootstrap workflow passes but browser sign-in does not:
+
+1. Confirm the Codespaces `DATABASE_URL` and `DIRECT_DATABASE_URL` contain the
+   same Supabase project reference as the Actions `STARTER_DATABASE_URL`.
+2. Stop and restart the Codespace after changing a Codespaces secret.
+3. Run `pnpm prisma:generate`, then `pnpm dev`.
+4. Open `/api/ready`; continue only when it reports `{"status":"ready"}`.
+5. Use the exact value saved as `STARTER_LOGIN_PASSWORD`. GitHub never displays
+   an existing secret again; replace it and rerun the bootstrap if its exact
+   value is no longer known.
+
+The application accepts the forwarded HTTPS origin used by a private Codespace
+while retaining exact-origin enforcement in production. The session cookie is
+marked Secure whenever GitHub forwards the request over HTTPS.

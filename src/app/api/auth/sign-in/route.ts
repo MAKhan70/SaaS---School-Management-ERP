@@ -54,7 +54,10 @@ export async function POST(request: Request) {
     response.cookies.set(
       SESSION_COOKIE,
       result.sessionToken,
-      sessionCookieOptions(new Date(Date.now() + 8 * 60 * 60 * 1000)),
+      sessionCookieOptions(
+        new Date(Date.now() + 8 * 60 * 60 * 1000),
+        request.headers,
+      ),
     );
     return response;
   } catch {

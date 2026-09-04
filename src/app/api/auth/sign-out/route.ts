@@ -21,7 +21,11 @@ export async function POST(request: Request) {
     requestMetadata(request.headers),
   );
   const response = NextResponse.redirect(new URL("/sign-in", request.url), 303);
-  response.cookies.set(SESSION_COOKIE, "", sessionCookieOptions(new Date(0)));
+  response.cookies.set(
+    SESSION_COOKIE,
+    "",
+    sessionCookieOptions(new Date(0), request.headers),
+  );
   response.headers.set("Clear-Site-Data", '"cache", "cookies", "storage"');
   return response;
 }

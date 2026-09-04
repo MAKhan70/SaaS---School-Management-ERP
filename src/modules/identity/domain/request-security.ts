@@ -32,11 +32,30 @@ export function hasTrustedMutationOrigin(headers: Headers): boolean {
 
   try {
     const configuredOrigin = process.env.APP_ORIGIN;
-    if (configuredOrigin)
-      return new URL(origin).origin === new URL(configuredOrigin).origin;
+    if (
+      configuredOrigin &&
+      new URL(origin).origin === new URL(configuredOrigin).origin
+    )
+      return true;
     if (process.env.NODE_ENV === "production") return false;
-    const host = headers.get("host");
-    return Boolean(host && new URL(origin).host === host);
+
+    // Development previews such as GitHub Codespaces terminate HTTPS at a
+    // trusted forwarding proxy. Their browser origin cannot equal the local
+    // APP_ORIGIN, so verify the proxy-preserved request host instead.
+    const forwardedHost = headers
+      .get("x-forwarded-host")
+      ?.split(",")[0]
+      ?.trim();
+    const host = forwardedHost ?? headers.get("host");
+    if (!host || new URL(origin).host !== host) return false;
+
+    const forwardedProtocol = headers
+      .get("x-forwarded-proto")
+      ?.split(",")[0]
+      ?.trim();
+    return (
+      !forwardedProtocol || new URL(origin).protocol === `${forwardedProtocol}:`
+    );
   } catch {
     return false;
   }

@@ -9,10 +9,15 @@ import { prisma } from "@/server/database/prisma";
 
 export const SESSION_COOKIE = "nasaq_session";
 
-export function sessionCookieOptions(expires?: Date) {
+export function sessionCookieOptions(expires?: Date, headers?: Headers) {
+  const forwardedProtocol = headers
+    ?.get("x-forwarded-proto")
+    ?.split(",")[0]
+    ?.trim();
   return {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure:
+      process.env.NODE_ENV === "production" || forwardedProtocol === "https",
     sameSite: "lax" as const,
     path: "/",
     expires,
