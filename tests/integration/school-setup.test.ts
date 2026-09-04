@@ -1,10 +1,12 @@
 import { PrismaClient } from "@/generated/prisma";
 import { SchoolSetupService } from "@/modules/academic-structure/application/school-setup-service";
 import type { AuthenticatedContext } from "@/modules/identity/application/auth-service";
+import { InstitutionService } from "@/modules/institutions/application/institution-service";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 const prisma = new PrismaClient();
 const service = new SchoolSetupService(prisma);
+const institutionService = new InstitutionService(prisma);
 const runId = Date.now().toString(36);
 const ids = {
   platform: `platform_school_setup_${runId}`,
@@ -125,6 +127,26 @@ describe("school setup tenant isolation and academic-year rules", () => {
     const overview = await service.overview(context);
     expect(overview.school.id).toBe(ids.schoolA);
     expect(overview.school.id).not.toBe(ids.schoolB);
+  });
+
+  it("returns tenant-scoped institution profiles and trust capabilities", async () => {
+    const overview = await institutionService.overview(context);
+
+    expect(overview.trust.id).toBe(ids.trustA);
+    expect(overview.school.id).toBe(ids.schoolA);
+    expect(overview.school.id).not.toBe(ids.schoolB);
+    expect(overview.canManageTrust).toBe(true);
+    expect(overview.canManageSchool).toBe(true);
+  });
+
+  it("denies institution profiles without the school-management grant", async () => {
+    await expect(
+      institutionService.overview({
+        ...context,
+        permissionKeys: [],
+        permissionGrants: [],
+      }),
+    ).rejects.toThrow("Access denied");
   });
 
   it("denies setup access without the server-side permission grant", async () => {

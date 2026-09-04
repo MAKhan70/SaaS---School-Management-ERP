@@ -4,24 +4,26 @@ const identifier = z.string().trim().min(1).max(64);
 const label = z.string().trim().min(1).max(160);
 const date = z.iso.date();
 
+export const institutionProfileMutationSchema = z.object({
+  action: z.literal("profile.update"),
+  resource: z.enum(["trust", "school", "campus"]),
+  resourceId: identifier,
+  name: label,
+  code: identifier.optional(),
+  defaultLocale: z
+    .string()
+    .regex(/^[a-z]{2}(?:-[A-Z]{2})?$/)
+    .optional(),
+  defaultTimezone: z.string().trim().min(3).max(80).optional(),
+  defaultCurrency: z
+    .string()
+    .regex(/^[A-Z]{3}$/)
+    .optional(),
+  timezone: z.string().trim().min(3).max(80).optional(),
+});
+
 export const schoolSetupMutationSchema = z.discriminatedUnion("action", [
-  z.object({
-    action: z.literal("profile.update"),
-    resource: z.enum(["trust", "school", "campus"]),
-    resourceId: identifier,
-    name: label,
-    code: identifier.optional(),
-    defaultLocale: z
-      .string()
-      .regex(/^[a-z]{2}(?:-[A-Z]{2})?$/)
-      .optional(),
-    defaultTimezone: z.string().trim().min(3).max(80).optional(),
-    defaultCurrency: z
-      .string()
-      .regex(/^[A-Z]{3}$/)
-      .optional(),
-    timezone: z.string().trim().min(3).max(80).optional(),
-  }),
+  institutionProfileMutationSchema,
   z.object({
     action: z.literal("academicYear.create"),
     code: identifier,
@@ -170,6 +172,9 @@ export const schoolSetupMutationSchema = z.discriminatedUnion("action", [
 ]);
 
 export type SchoolSetupMutation = z.output<typeof schoolSetupMutationSchema>;
+export type InstitutionProfileMutation = z.output<
+  typeof institutionProfileMutationSchema
+>;
 
 export function academicYearsOverlap(
   first: { startsOn: Date; endsOn: Date },

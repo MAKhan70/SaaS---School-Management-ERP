@@ -1665,6 +1665,38 @@ td small {
   margin: 0 0 14px;
   font-size: 1rem;
 }
+.setup-profile-grid .panel > svg {
+  margin-bottom: 12px;
+  color: var(--brand);
+}
+.institution-details {
+  margin: 0 0 14px;
+}
+.institution-details div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid var(--line);
+  padding: 8px 0;
+  font-size: 0.72rem;
+}
+.institution-details dt,
+.institution-scope-note {
+  color: var(--muted);
+}
+.institution-details dd {
+  margin: 0;
+  text-align: right;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.institution-scope-note {
+  border-top: 1px solid var(--line);
+  margin: 0;
+  padding-top: 14px;
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
 .setup-summary,
 .setup-workspace {
   margin-top: 14px;

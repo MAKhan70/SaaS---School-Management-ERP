@@ -14,4 +14,13 @@ describe("permission-aware navigation", () => {
     expect(labels).not.toContain("Fees");
     expect(labels).not.toContain("Staff & HR");
   });
+
+  it("links the implemented Institutions workflow without a roadmap marker", () => {
+    const item = navigationForPermissions(["institutions.school.manage"]).find(
+      ({ label }) => label === "Institutions",
+    );
+
+    expect(item).toMatchObject({ href: "/institutions" });
+    expect(item?.status).toBeUndefined();
+  });
 });

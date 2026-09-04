@@ -16,9 +16,9 @@ Trust/school/campus provisioning; Auth.js email/password; membership selection; 
 
 Exit: automated cross-tenant negative tests and an audited, revocable administrator session.
 
-## Phase 2 — institution and academic structure
+## Phase 2 — institution and academic structure (profile foundation implemented)
 
-Boards, academic years/terms, classes, sections, streams, subjects, curriculum mappings, staff assignments, localized reference data, import validation.
+Permission-scoped trust, school, and campus profile management is implemented with audited updates. Boards, academic years/terms, classes, sections, streams, subjects, curriculum mappings, staff assignments, localized reference data, and import validation continue as incremental slices.
 
 ## Phase 3 — student information and admissions (implemented foundation)
 

@@ -51,6 +51,7 @@ Every endpoint authenticates and its application service enforces stable permiss
 | Path                                    | Methods / capability                                                                       |
 | --------------------------------------- | ------------------------------------------------------------------------------------------ |
 | `/api/v1/institutions/schools`          | Read authorized school/campus context                                                      |
+| `/api/v1/institutions`                  | GET scoped organisation profiles; POST validated, audited profile update                   |
 | `/api/v1/school-setup`                  | GET setup model; POST validated configuration mutation                                     |
 | `/api/v1/school-setup/templates/{kind}` | Authorized CSV template download                                                           |
 | `/api/v1/students`                      | GET filtered paginated directory; POST mutation                                            |

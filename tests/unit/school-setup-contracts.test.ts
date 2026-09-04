@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   academicYearsOverlap,
   csvTemplate,
+  institutionProfileMutationSchema,
   schoolSetupMutationSchema,
 } from "@/modules/academic-structure/domain/school-setup-contracts";
 
@@ -51,5 +52,28 @@ describe("school setup contracts", () => {
       }).success,
     ).toBe(false);
     expect(csvTemplate("subjects")).toBe("code,name,departmentId\n");
+  });
+
+  it("validates bounded institution profile settings", () => {
+    expect(
+      institutionProfileMutationSchema.safeParse({
+        action: "profile.update",
+        resource: "trust",
+        resourceId: "trust-a",
+        name: "Fictional Learning Trust",
+        defaultLocale: "en-IN",
+        defaultTimezone: "Asia/Kolkata",
+        defaultCurrency: "INR",
+      }).success,
+    ).toBe(true);
+    expect(
+      institutionProfileMutationSchema.safeParse({
+        action: "profile.update",
+        resource: "trust",
+        resourceId: "trust-a",
+        name: "Fictional Learning Trust",
+        defaultCurrency: "rupees",
+      }).success,
+    ).toBe(false);
   });
 });

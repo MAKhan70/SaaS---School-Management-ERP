@@ -34,9 +34,9 @@ export const navigation: readonly NavigationItem[] = [
   },
   {
     label: "Institutions",
+    href: "/institutions" as Route,
     icon: School,
     permission: "institutions.school.manage",
-    status: "planned",
   },
   {
     label: "Students",
