@@ -62,6 +62,36 @@ describe("request security regression controls", () => {
     ).toBe(true);
   });
 
+  it("accepts only this Codespace forwarding origin in development", () => {
+    vi.stubEnv("APP_ORIGIN", "http://localhost:3000");
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("CODESPACE_NAME", "fictional-preview");
+    vi.stubEnv("GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN", "app.github.dev");
+
+    expect(
+      hasTrustedMutationOrigin(
+        new Headers({
+          origin: "https://fictional-preview-3000.app.github.dev",
+          host: "localhost:3000",
+          "x-forwarded-host": "internal-forwarder",
+          "x-forwarded-proto": "http",
+        }),
+      ),
+    ).toBe(true);
+    expect(
+      hasTrustedMutationOrigin(
+        new Headers({ origin: "https://other-3000.app.github.dev" }),
+      ),
+    ).toBe(false);
+    expect(
+      hasTrustedMutationOrigin(
+        new Headers({
+          origin: "https://fictional-preview-attacker.app.github.dev",
+        }),
+      ),
+    ).toBe(false);
+  });
+
   it("marks forwarded HTTPS preview session cookies as secure", () => {
     vi.stubEnv("NODE_ENV", "development");
 

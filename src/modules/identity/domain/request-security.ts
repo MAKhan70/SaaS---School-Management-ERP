@@ -31,13 +31,30 @@ export function hasTrustedMutationOrigin(headers: Headers): boolean {
   if (!origin) return process.env.NODE_ENV === "test";
 
   try {
+    const parsedOrigin = new URL(origin);
     const configuredOrigin = process.env.APP_ORIGIN;
     if (
       configuredOrigin &&
-      new URL(origin).origin === new URL(configuredOrigin).origin
+      parsedOrigin.origin === new URL(configuredOrigin).origin
     )
       return true;
     if (process.env.NODE_ENV === "production") return false;
+
+    const codespaceName = process.env.CODESPACE_NAME?.trim();
+    const forwardingDomain =
+      process.env.GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN?.trim().replace(
+        /^\.|\.$/g,
+        "",
+      );
+    const applicationPort = process.env.PORT?.trim() || "3000";
+    if (
+      codespaceName &&
+      forwardingDomain &&
+      parsedOrigin.protocol === "https:" &&
+      parsedOrigin.hostname ===
+        `${codespaceName}-${applicationPort}.${forwardingDomain}`
+    )
+      return true;
 
     // Development previews such as GitHub Codespaces terminate HTTPS at a
     // trusted forwarding proxy. Their browser origin cannot equal the local
@@ -53,14 +70,14 @@ export function hasTrustedMutationOrigin(headers: Headers): boolean {
         (value): value is string => Boolean(value),
       ),
     );
-    if (!requestHosts.has(new URL(origin).host)) return false;
+    if (!requestHosts.has(parsedOrigin.host)) return false;
 
     const forwardedProtocol = headers
       .get("x-forwarded-proto")
       ?.split(",")[0]
       ?.trim();
     return (
-      !forwardedProtocol || new URL(origin).protocol === `${forwardedProtocol}:`
+      !forwardedProtocol || parsedOrigin.protocol === `${forwardedProtocol}:`
     );
   } catch {
     return false;
