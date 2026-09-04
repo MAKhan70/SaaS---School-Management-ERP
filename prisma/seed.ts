@@ -1361,13 +1361,26 @@ async function seedTenantData() {
           });
         }
 
+        const roleMembershipId =
+          demoUser.scope === AssignmentScope.TRUST
+            ? undefined
+            : primaryMembership;
+        const roleSchoolId =
+          demoUser.scope === AssignmentScope.TRUST
+            ? undefined
+            : demoUser.schoolId;
+        const roleCampusId =
+          demoUser.scope === AssignmentScope.TRUST
+            ? undefined
+            : demoUser.campusId;
+
         await transaction.userRoleAssignment.upsert({
           where: { id: `role_assignment_demo_${demoUser.key}` },
           update: {
             status: RecordStatus.ACTIVE,
-            schoolMembershipId: primaryMembership ?? null,
-            schoolId: demoUser.schoolId ?? null,
-            campusId: demoUser.campusId ?? null,
+            schoolMembershipId: roleMembershipId ?? null,
+            schoolId: roleSchoolId ?? null,
+            campusId: roleCampusId ?? null,
             scope: demoUser.scope,
             effectiveTo: null,
           },
@@ -1376,9 +1389,9 @@ async function seedTenantData() {
             trustId: ids.trust,
             userId: id,
             roleId: `role_system_${demoUser.role}`,
-            schoolMembershipId: primaryMembership,
-            schoolId: demoUser.schoolId,
-            campusId: demoUser.campusId,
+            schoolMembershipId: roleMembershipId,
+            schoolId: roleSchoolId,
+            campusId: roleCampusId,
             scope: demoUser.scope,
             effectiveFrom: date("2026-04-01"),
             createdBy: userId("trust-admin"),
