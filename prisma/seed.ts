@@ -437,6 +437,7 @@ const demoUsers: readonly DemoUser[] = [
   {
     key: "trust-admin",
     role: "trust_admin",
+    schoolId: ids.cbseSchool,
     scope: AssignmentScope.TRUST,
     staff: true,
   },
@@ -1362,7 +1363,14 @@ async function seedTenantData() {
 
         await transaction.userRoleAssignment.upsert({
           where: { id: `role_assignment_demo_${demoUser.key}` },
-          update: { status: RecordStatus.ACTIVE, effectiveTo: null },
+          update: {
+            status: RecordStatus.ACTIVE,
+            schoolMembershipId: primaryMembership ?? null,
+            schoolId: demoUser.schoolId ?? null,
+            campusId: demoUser.campusId ?? null,
+            scope: demoUser.scope,
+            effectiveTo: null,
+          },
           create: {
             id: `role_assignment_demo_${demoUser.key}`,
             trustId: ids.trust,

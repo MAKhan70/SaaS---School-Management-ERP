@@ -22,6 +22,11 @@ Representative grades, sections, streams, departments, subjects, terms, weekly w
 
 Fictional `@demo.nasaq.test` accounts represent trust administrator, school administrator, principal, teacher, student, parent/guardian, accountant, HR, librarian, transport staff, hostel staff, nurse, and security staff. Display names identify the role, not a real person. Password hashes are added only when the local-only `DEMO_USER_PASSWORD` environment variable is explicitly supplied; sensitive identifiers are never seeded.
 
+The fictional NASAQ platform administrator receives an initial membership in
+the demo primary school so authentication can resolve a school and academic-year
+context. This is limited to the synthetic internal sandbox; access to a real
+client remains time-bound, reasoned, and audited through support access.
+
 The demo student has one active enrollment and one guardian relationship. Staff representatives have effective-dated staff assignments where applicable.
 
 Admissions seed data adds published enquiry and application form version 1 for the CBSE demo school, opaque public keys, a Grade 8 seat plan, one counselor-assigned synthetic application under review, and a pending document checklist item. Development offer/rejection messages remain local masked previews and are never sent.
