@@ -46,6 +46,22 @@ describe("request security regression controls", () => {
     expect(hasTrustedMutationOrigin(headers)).toBe(false);
   });
 
+  it("accepts the external host when a development proxy rewrites its forwarded host", () => {
+    vi.stubEnv("APP_ORIGIN", "http://localhost:3000");
+    vi.stubEnv("NODE_ENV", "development");
+
+    expect(
+      hasTrustedMutationOrigin(
+        new Headers({
+          origin: "https://fictional-preview-3000.app.github.dev",
+          host: "fictional-preview-3000.app.github.dev",
+          "x-forwarded-host": "localhost:3000",
+          "x-forwarded-proto": "https",
+        }),
+      ),
+    ).toBe(true);
+  });
+
   it("marks forwarded HTTPS preview session cookies as secure", () => {
     vi.stubEnv("NODE_ENV", "development");
 
