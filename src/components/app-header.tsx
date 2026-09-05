@@ -1,7 +1,7 @@
-import { Bell, ChevronDown, Menu } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 
-import { AppSidebar } from "@/components/app-sidebar";
 import { Brand } from "@/components/brand";
+import { MobileNavigation } from "@/components/mobile-navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
 import type { AuthenticatedContext } from "@/modules/identity/application/auth-service";
 import { SchoolContextSelector } from "@/components/school-context-selector";
@@ -11,18 +11,10 @@ import type { Route } from "next";
 export function AppHeader({ context }: { context: AuthenticatedContext }) {
   return (
     <header className="app-header">
-      <details className="mobile-menu">
-        <summary className="icon-button" aria-label="Open navigation">
-          <Menu size={20} />
-        </summary>
-        <div className="mobile-drawer">
-          <AppSidebar
-            permissionKeys={context.permissionKeys}
-            onMobile
-            trustName={context.trustName}
-          />
-        </div>
-      </details>
+      <MobileNavigation
+        permissionKeys={context.permissionKeys}
+        trustName={context.trustName}
+      />
       <div className="mobile-brand">
         <Brand compact />
       </div>
@@ -44,14 +36,6 @@ export function AppHeader({ context }: { context: AuthenticatedContext }) {
           </Link>
         )}
         <ThemeToggle />
-        <button
-          className="icon-button notification-button"
-          type="button"
-          aria-label="Notifications, 3 unread"
-        >
-          <Bell size={18} />
-          <span aria-hidden="true">3</span>
-        </button>
         <details className="user-menu">
           <summary aria-label="Open user menu">
             <span className="user-avatar" aria-hidden="true">

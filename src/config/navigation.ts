@@ -52,9 +52,9 @@ export const navigation: readonly NavigationItem[] = [
   },
   {
     label: "Staff & HR",
+    href: "/operations/hr" as Route,
     icon: UsersRound,
     permission: "hr.staff.manage",
-    status: "planned",
   },
   {
     label: "Attendance",
@@ -94,21 +94,21 @@ export const navigation: readonly NavigationItem[] = [
   },
   {
     label: "Library",
+    href: "/operations/library" as Route,
     icon: Library,
     permission: "library.circulation.manage",
-    status: "planned",
   },
   {
     label: "Transport",
+    href: "/operations/transport" as Route,
     icon: BusFront,
     permission: "transport.operations.manage",
-    status: "planned",
   },
   {
     label: "Health centre",
+    href: "/operations/health" as Route,
     icon: HeartPulse,
     permission: "health.records.read",
-    status: "planned",
   },
 ];
 

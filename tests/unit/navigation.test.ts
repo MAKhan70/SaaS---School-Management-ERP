@@ -23,4 +23,21 @@ describe("permission-aware navigation", () => {
     expect(item).toMatchObject({ href: "/institutions" });
     expect(item?.status).toBeUndefined();
   });
+
+  it("links existing specialist workspaces instead of showing placeholders", () => {
+    const items = navigationForPermissions([
+      "hr.staff.manage",
+      "library.circulation.manage",
+      "transport.operations.manage",
+      "health.records.read",
+    ]);
+
+    expect(items.map(({ href }) => href)).toEqual([
+      "/operations/hr",
+      "/operations/library",
+      "/operations/transport",
+      "/operations/health",
+    ]);
+    expect(items.every(({ status }) => status === undefined)).toBe(true);
+  });
 });

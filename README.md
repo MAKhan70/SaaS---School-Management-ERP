@@ -8,6 +8,8 @@ Technical foundation for a multi-tenant School Management SaaS serving Indian ed
 
 This repository contains the multi-tenant foundation plus implemented vertical slices for authentication/onboarding, institution profile management, school setup, student information, admissions, attendance, examinations/reporting, fees, role-specific dashboards, analytics, responsible local assisted drafting, and the first shared slice of the operational module portfolio. Production integrations and dedicated high-risk operational aggregates remain intentionally separate.
 
+The permission-aware application shell links every implemented workspace directly, including the shared HR, library, transport, and health operational slices. Navigation availability never replaces server-side authorization.
+
 It also includes the NASAQ platform control plane at `/platform/clients` for permission-protected client provisioning, per-tenant feature entitlements, master-administrator invitations, and time-bound audited client test access. See [the control-plane architecture](docs/architecture/PLATFORM_ADMIN_CONTROL_PLANE.md) and [Supabase deployment setup](docs/DEPLOYMENT.md#supabase-project-setup).
 
 ## Prerequisites
